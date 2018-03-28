@@ -1,10 +1,6 @@
 #!/bin/bash
-if test -f /tmp/temp.txt
-then
-	rm -f /tmp/temp.txt
-fi
 data_hoje=$(date +%Y-%m-%d)
-data_agora=$(date "+%Y-%m-%d %H:%M")
+data_agora=$(date "+%Y-%m-%d %H:%M:%S")
 elastichost=elk.howtoonline.com.br
 elasticport=9200
 username=elastic
@@ -12,12 +8,16 @@ password=mujebik@
 index=howto-$data_hoje
 
 
-curl --user $username:$password -XPUT -H "Content-Type: application/json" "http://$elastichost:$elasticport/$index/mappings/doc?" \
+curl --user $username:$password -XPUT -H "Content-Type: application/json" "$elastichost:$elasticport/$index?pretty" \
   --data @- <<END	
 {
-
+	"mappings": {
+	"doc": {
 		"properties": {
-		"date": { "type": "date", "format": "yyyy-MM-dd HH:mm||yyyy-MM-dd||strict_date_optional||epoch_millis|basic_date_time" }
+		"data": { "type": "date", "format": "yyyy-MM-dd HH:mm:ss" },
+		"id": { "type": "integer" }
+}
+}
 }
 }
 
@@ -46,8 +46,8 @@ END
 #done
 
 
-curl --user $username:$password -XPOST -H 'Content-Type: application/json' "$elastichost:$elasticport/$index/mappings/doc?" \
+curl --user $username:$password -XPOST -H 'Content-Type: application/json' "$elastichost:$elasticport/$index/doc" \
 		--data @- <<END 
-{"login": "bguno","email": "bguno@merda","data": "$data_hoje","curso": "De Merda","nome": "Cú","sobrenome": "de Oliveira","cidade": "Nilopolis"}
+{"id": "1", "login": "axl","email": "bguno@merda","data": "$data_agora","curso": "De Merda","nome": "Cú","sobrenome": "de Oliveira","cidade": "Nilopolis"}
 END
 
